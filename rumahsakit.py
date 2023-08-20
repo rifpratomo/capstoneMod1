@@ -128,171 +128,219 @@ dbPasien = [
         'idPasien': 'id37', 'room': 'C3'
     }
 ]
+roomCapacity = {'vip': 4,
+                    'icu': 6,
+                    'C1' : 8,
+                    'C2' : 12,
+                    'C3' : 24}
 
-def menu():
+db=[]
+
+def pilihMenu():
+    print ('Menu data rumah sakit ')
     print('[1] Tampil Data Pasien')
     print('[2] Tambah Data Pasien')
-    print('[3] Edit Data Pasien')
-    print('[4] Pendataan Pulang Data Pasien')
-    
-    kode = input('Masukkan Nomor Menu : ')
-    if kode =='1':
-        print('Menu Daftar Informasi\n')
-        # daftarPasien()
-        patient_table = tabelPasien(dbPasien)
-        cetakTabel(patient_table) 
-    elif kode =='2':
-        print('Menu Menambah Pasien\n')
-        addPasien(dbPasien)
-    elif kode =='3':
-        
-        while True:
-            print('Ubah Data Pasien')
-            print('[1] Ubah Kamar Pasien')
-            print('[2] Pemulangan Pasien')
-            kode = input('Masukkan Nomor Menu : ')
+    print('[3] Ubah kamar Pasien')
+    print('[4] Pemulangan pasien')
+    print('[5] Program Selesai\n')  
+    menunum = int(input('Masukkan nomor opsi yang dipilih : ')) 
+    return menunum
 
-            if kode == '1':
+def menu(dbPasien,roomCapacity):
+    while True:
+        menuSelection = pilihMenu()
+        if menuSelection ==1:
+            print('[1] Tampil Data Pasien')
+            tabelPasien()
+        elif menuSelection ==2:
+            print('[2] Tambah Data Pasien')
+            dbPasien.append(tambahPasien())
+        elif menuSelection ==3:
+            print('[3] Ubah kamar Pasien')
+            tabelPasien()
+            while True:
+                pilihPasien= input('Masukan id Pasien')
+                for i in dbPasien:
+                    if i['idPasien'] == pilihPasien:
+                        i['room'] = ubahRoom(dbPasien,roomCapacity)
+                    break
+                else:
+                    print (f"Pasien dengan ID {pilihPasien} tidak ditemukan")
+                break
+        elif menuSelection ==4:
+            print('[4] Pemulangan pasien')
+            tabelPasien()
+            print ('\n')
+            pulangpasien()
+        elif menuSelection ==5:
+            print('program selesai')
+            break
 
-                print('Anda memilih menu Ubah Kamar Pasien')
-                break 
-            elif kode == '2':
-
-                print('Anda memilih menu Pemulangan Pasien')
-                idpasien = input("Masukkan ID Pasien yang akan dihapus: ")
-                pasienPulang(idpasien)
-                break  
+            
+                    
+def pulangpasien():
+    print('opsi pasien')
+    print('1. pasien sembuh/Pulang')
+    print('2. pasien meninggal')
+    pilihopsi= int(input('Masukan opsi Pasien'))
+    pilihPasien= input('Masukan id Pasien')
+    while True:
+        if pilihopsi == 1:
+            for i in dbPasien:
+                if i['idPasien'] == pilihPasien:
+                    namaPasien= i['identitas']['nama']
+                    wali = i['wali']['nama']
+                    pindahDb = {'identitas' : i['identitas'],'medRcrd' : i['medRcrd']}
+                    print(f'Persiapan pemulangan pasien {namaPasien}, menghubungi wali {wali} h-1 sebelum pulang ')
+                    db.append(pindahDb)
+                    dbPasien.remove(i)
+                break
             else:
-                print('Pilihan tidak valid. Silakan pilih 1 atau 2.')
-        
-    elif kode =='4':
-        print('Program Selesai')
-        exit()
-    else :
-        print('Menu Salah')
-    
-    while (True):
-        menu()
-        
+                print (f"Pasien dengan ID {pilihPasien} tidak ditemukan")
+            break
+        elif pilihopsi == 2:
+            for i in dbPasien:
+                if i['idPasien'] == pilihPasien:
+                    namaPasien= i['identitas']['nama']
+                    wali = i['wali']['nama']
+                    print(f'Persiapan pemulangan jenazah {namaPasien}, menghubungi wali {wali} untuk penjemputan jenazah')
+                break
+            else:
+                print (f"Pasien dengan ID {pilihPasien} tidak ditemukan")
+            break
+            
+            
+            
 def tabelPasien(data):
-    table = []
-    headers = ["Index", "ID Pasien", "Nama", "Alamat", "Diagnosa", "Kamar"]
+    print ('Tabel Seluruh Pasien')
+    print("{:<15} {:<15} {:<29} {:<15} {:<10}".format("Nama", "ID Pasien", "Alamat", "Diagnosa", "Kamar"))
     
-    for idx, patient in enumerate(data):
-        identitas = patient['identitas']
-        med_record = patient['medRcrd']
-        table.append([
-            str(idx + 1),
-            patient['idPasien'],
-            identitas['nama'],
-            identitas['alamat'],
-            med_record['diagnosa'],
-            patient['room']
-        ])
-    table.insert(0, headers)
-    return table
+    for pasien in data:
+        print("{:<15} {:<15} {:<29} {:<15} {:<10}".format(
+            pasien['identitas']['nama'], pasien['idPasien'], pasien['identitas']['alamat'], pasien['medRcrd']['diagnosa'],pasien['room']
+        ))
+    
+    
+def tambahPasien():
+    formKosong = {'identitas': {'nama': None, 'NIK': None, 'alamat': None},
+        'medRcrd': {'golDrh': None, 'diagnosa': None},
+        'wali': {'nama': None, 'NIK': None, 'hubungan': None, 'alamat': None},
+        'idPasien': None, 'room': None}
+    
+    dataPasien = formKosong.copy()  # Copy formKosong untuk mengisi data pasien baru
 
-def cetakTabel(table):
-    col_width = [max(len(str(word)) for word in col) for col in zip(*table)]
-    for row in table:
-        print("  ".join(str(word).ljust(width) for word, width in zip(row, col_width)))
-        
-# tabel kamar
-
-def roomHitung(data):
-    lroom= []
-    for i in data:
-        lroom.append({i['idPasien']:i['room']})
-    roomCounts =    {'C1': 0, 
-                   'C2': 0, 
-                   'C3': 0,
-                   'vip':0,
-                   'icu':0
-                   }  
-    for roomEntry in lroom:
-        for roomValue in roomEntry.values():
-            if roomValue in roomCounts:
-                roomCounts[roomValue] += 1
-    return roomCounts
-
-
-def addIdentitas():
-    print('Masukkan Identitas Pasien')
-    noIdentitas = input('NIK : ')
-    namaPasien = input('nama lengkap (sesuai KTP) : ')
-    alamatRumah = input('Alamat rumah : ')
-    return {'nama':namaPasien,'NIK' : noIdentitas,'alamat' : alamatRumah}
-
-def addWali():
-    print('Masukkan Identitas Wali')
-    noIdentitas = input('NIK : ')
-    namaWali = input('nama lengkap (sesuai KTP) : ')
-    alamatRumah = input('Alamat rumah : ')
-    hubungan = input('Hubungan : ')
-    return {'nama': namaWali,'NIK' : noIdentitas,'hubPasien': hubungan,'alamat' : alamatRumah}
-
-def rekamMedis():
-    golDarah = input('golongan Darah : ')
-    diagnosa = input('diagnosa : ')
-    return {'golDrh' : golDarah,'diagnosa':diagnosa}
-
+    # Mengisi data pasien dari input pengguna
+    dataPasien['identitas']['nama'] = input("Masukkan nama pasien: ")
+    dataPasien['identitas']['NIK'] = input("Masukkan NIK pasien: ")
+    dataPasien['identitas']['alamat'] = input("Masukkan alamat pasien: ")
+    dataPasien['medRcrd']['golDrh'] = input("Masukkan golongan darah pasien: ")
+    dataPasien['medRcrd']['diagnosa'] = input("Masukkan diagnosa pasien: ")
+    dataPasien['wali']['nama'] = input("Masukkan nama wali pasien: ")
+    dataPasien['wali']['NIK'] = input("Masukkan NIK wali pasien: ")
+    dataPasien['wali']['hubungan'] = input("Masukkan hubungan dengan pasien: ")
+    dataPasien['wali']['alamat'] = input("Masukkan alamat wali pasien: ")
+    dataPasien['idPasien'] = regIdPasien(dbPasien)
+    dataPasien['room'] = assignRoom(dbPasien,roomCapacity)
+    
+    return dataPasien
+    
 def regIdPasien(dbPasien):
     while True:
         idPasien = 'ID' + str(random.randint(1, 99))
         id_exists = any(item['idPasien'] == idPasien for item in dbPasien)
         if not id_exists:
             return idPasien
-        
-def addPasien(dbPasien):
-    pasienbaru= {}
-    pasienbaru={'identitas':addIdentitas(),'medRcrd' : rekamMedis(),'Wali':addWali(),'idPasien':regIdPasien(dbPasien),'room':assignRoomPasien(dbPasien)}
-    dbPasien.append(pasienbaru)
 
-def assignRoomPasien(dbPasien):
-    roomCapacity=   {'C1':8,
-                 'C2':12,
-                 'C3':24,
-                 'vip':4,
-                 'icu':4
-    }
-    roomCounts = roomHitung(dbPasien)
-   
-    pilihanKamar = int(input('Pilih nomor ruangan: '))
-    print('Pilih Ruang Inap')
-    print(f'1. Kelas VIP')
-    print('2. Kelas 1')
-    print('3. Kelas 2')
-    print('4. Kelas 3')
-    room = ''
-    if pilihanKamar == 1:
-        room = 'vip'
-    elif pilihanKamar == 2:
-        room = 'C1'
-    elif pilihanKamar == 3:
-        room = 'C2'
-    elif pilihanKamar == 4:
-        room = 'C3'
-    else:
-        print('Pilihan ruangan tidak valid.')
-        assignRoomPasien(dbPasien)
-    
-    if room in roomCounts and room in roomCapacity:
-        if roomCounts[room] < roomCapacity[room]:
-            roomCounts[room] += 1
-            print(f'Pasien telah ditugaskan ke Ruang {room}')
+def assignRoom(data_pasien, roomCapacity):
+    rc=sisaKamar(data_pasien, roomCapacity)
+    print ('Menu pilihan Kamar')
+    print ('1. VIP')
+    print ('2. Kelas 1')
+    print ('3. Kelas 2')
+    print ('4. Kelas 3')
+    nomenu = int(input('Pilih Kamar Yang diinginkan'))
+    while True:
+        if nomenu == 1:
+            if rc['vip'] > 0:
+                pilihanKamar = 'vip'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 2:
+            if rc['C1'] > 0:
+                pilihanKamar = 'C1'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 3:
+            if rc['C2'] > 0:
+                pilihanKamar = 'C2'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 4:
+            if rc['C3'] > 0:
+                pilihanKamar = 'C3'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
         else:
-            print(f'Ruang {room} sudah penuh. Pilih ruangan lain.')
-    else:
-        print(f'Ruang {room} tidak valid.')
-    return room
+            print ('Menu salah')
 
-def pasienPulang(patient_id):
-    for index, patient in enumerate(dbPasien):
-        if patient['idPasien'] == patient_id:
-            del dbPasien[index]
-            print(f"pasien dengan ID {patient_id} telah pulang.")
-            return True
-    print(f"Tidak ditemukan pasien dengan ID {patient_id}")
-    return False    
+def ubahRoom(data_pasien, roomCapacity):
+    rc=sisaKamar(data_pasien, roomCapacity)
+    print ('Menu pilihan Kamar')
+    print ('1. VIP')
+    print ('2. Kelas 1')
+    print ('3. Kelas 2')
+    print ('4. Kelas 3')
+    print ('5. ICU')
+    nomenu = int(input('Pilih Kamar Yang diinginkan'))
+    while True:
+        if nomenu == 1:
+            if rc['vip'] > 0:
+                pilihanKamar = 'vip'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 2:
+            if rc['C1'] > 0:
+                pilihanKamar = 'C1'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 3:
+            if rc['C2'] > 0:
+                pilihanKamar = 'C2'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 4:
+            if rc['C3'] > 0:
+                pilihanKamar = 'C3'
+                return pilihanKamar
+            else:
+                print ('Kamar Penuh')
+        elif nomenu == 5:
+            if rc['icu'] > 0:
+                pilihanKamar = 'icu'
+                return pilihanKamar
+            else:
+                print ('ICU Penuh, akan dirujuk ke rumah sakit lainnya')
+        else:
+            print ('Menu salah')   
     
-menu()
+def sisaKamar(data_pasien, roomCapacity):
+    kamarTersisa = dict(roomCapacity) 
+    for pasien in data_pasien:
+        room_type = pasien['room']
+        if room_type in kamarTersisa:
+            kamarTersisa[room_type] -= 1
+    return kamarTersisa
+
+def caripasienbyid(patient_id):
+    for patient in dbPasien:
+        if patient['idPasien'] == patient_id:
+            return patient
+    return None
+    
