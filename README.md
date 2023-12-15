@@ -1,4 +1,4 @@
-# **Capstone 1 C.R.U.D Implementasion Hospital Administration**
+# **Capstone 1 C.R.U.D Implementation Hospital Administration**
 
 This application was developed as my inaugural capstone project as part of my participation in the Data Science course at Purwadhika. The primary purpose of this app is to implement CRUD (Create, Read, Update, Delete) functionality. 
 
